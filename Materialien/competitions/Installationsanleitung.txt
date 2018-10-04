@@ -1,0 +1,8 @@
+pip install kaggle
+#Installationsanleitung hier: https://github.com/Kaggle/kaggle-api
+#1. Runterladen der API credentials (.kaggle/kaggle.json): 
+#mv kaggle.json ~/.kaggle/
+chmod 600 ~/.kaggle/kaggle.json
+#Lade Datensatz herunter:
+kaggle competitions download -c daan-kreuz-kreis-plus
+tar -xvf data.tar.gz
