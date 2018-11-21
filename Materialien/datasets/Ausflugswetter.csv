@@ -1,0 +1,15 @@
+Aussicht,Temperatur,Feuchtigkeit,Wind,Ausflug findet statt
+Sonne,Heiss,Hoch,FALSCH,Nein
+Sonne,Heiss,Hoch,WAHR,Nein
+Bewölkt,Heiss,Hoch,FALSCH,Ja
+Regen,Mild,Hoch,FALSCH,Ja
+Bewölkt,Mild,Hoch,FALSCH,Ja
+Bewölkt,Kühl,Normal,WAHR,Ja
+Sonne,Mild,Normal,WAHR,Nein
+Sonne,Mild,Normal,FALSCH,Ja
+Sonne,Mild,Normal,FALSCH,Ja
+Regen,Kühl,Normal,WAHR,Ja
+Regen,Kühl,Normal,WAHR,Ja
+Regen,Kühl,Hoch,FALSCH,Nein
+Bewölkt,Heiss,Normal,FALSCH,Ja
+Regen,Mild,Hoch,WAHR,Nein
