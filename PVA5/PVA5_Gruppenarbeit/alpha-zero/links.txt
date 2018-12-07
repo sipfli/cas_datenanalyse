@@ -1,0 +1,4 @@
+https://github.com/suragnair/alpha-zero-general
+http://web.stanford.edu/~surag/posts/alphazero.html
+https://github.com/suragnair/alpha-zero-general/raw/master/pretrained_models/writeup.pdf
+https://arxiv.org/abs/1712.01815
