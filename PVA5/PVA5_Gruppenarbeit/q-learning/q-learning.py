@@ -14,11 +14,12 @@ alpha = 0.1
 gamma = 0.6
 epsilon = 0.5
 minepsilon = 0.5
-NrEpisodes = 10000
+NrEpisodes = 30000
 
 
 all_epochs = []
 all_penalties = []
+print('Start training.')
 
 for i in range(1, NrEpisodes+1):
     state = env.reset()
@@ -46,7 +47,7 @@ for i in range(1, NrEpisodes+1):
             (reward + gamma * next_max)
         q_table[state, action] = new_value
 
-        if reward == -10:
+        if reward <= -2:
             penalties += 1
 
         state = next_state
@@ -57,9 +58,6 @@ for i in range(1, NrEpisodes+1):
         print(f"Episode: {i}")
 
 print("Training finished.\n")
-print(q_table)
-np.save('qtable',q_table)
-print('saved qtable.')
 print("Testing")
 for i in range(100):
     action = np.argmax(q_table[state])
@@ -70,7 +68,10 @@ for i in range(100):
     print(f'action {action} resulted in reward {reward}')
     print('--------------------------------------------')
     if done:
-        print('done.')
+        print('done. Starting new environment')
         state = env.reset()
+np.save('qtable',q_table)
+print('saved qtable.')
 print(q_table.shape)
 print(np.around(q_table,1))
+print(q_table)

@@ -5,8 +5,9 @@ import numpy as np
 env = gym.make("Taxi-v2").env
 q_table = np.load('qtable.npy')
 total_epochs, total_penalties = 0, 0
+MaxNrEpochs=1000 #Wait this long until stopping the episode (in case the agent is unsuccessful)
+
 episodes = 100
-MaxNrEpochs=1000
 
 for _ in range(episodes):
     state = env.reset()
@@ -18,7 +19,7 @@ for _ in range(episodes):
         action = np.argmax(q_table[state])
         state, reward, done, info = env.step(action)
 
-        if reward == -10:
+        if reward <= -2:
             penalties += 1
 
         epochs += 1
