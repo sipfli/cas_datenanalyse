@@ -1,0 +1,2 @@
+https://towardsdatascience.com/reinforcement-learning-with-python-8ef0242a2fa2
+https://www.learndatasci.com/tutorials/reinforcement-q-learning-scratch-python-openai-gym/
