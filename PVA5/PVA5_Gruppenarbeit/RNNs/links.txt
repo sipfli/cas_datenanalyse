@@ -1,0 +1,12 @@
+Selber RNN Programmieren (Teil 1):
+https://medium.com/@erikhallstrm/hello-world-rnn-83cd7105b767
+https://github.com/fastai/courses/blob/master/deeplearning1/nbs/lesson6.ipynb
+
+Tensorflow RNNs (Teil 2)
+https://gist.github.com/3h4/5fd3182b1676bf78219e5bc43534cc5f#file-2-2-rnn-api-py
+
+Tensorflow LSTMs (Teil 3)
+https://medium.com/@erikhallstrm/using-the-tensorflow-lstm-api-3-7-5f2b97ca6b73
+
+Multilayer LSTMs (Teil 4)
+https://medium.com/@erikhallstrm/using-the-tensorflow-multilayered-lstm-api-f6e7da7bbe40

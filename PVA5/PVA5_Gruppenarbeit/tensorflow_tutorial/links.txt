@@ -1,0 +1,2 @@
+https://www.tensorflow.org/get_started/mnist/pros
+ihttps://github.com/tensorflow/tensorflow/blob/r1.4/tensorflow/examples/tutorials/mnist/mnist_deep.py
