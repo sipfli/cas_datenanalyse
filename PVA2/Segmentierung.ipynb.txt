@@ -1,0 +1,543 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Segmentierung von Bildern"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "In diesem Notebook wird vorgeführt, wie Sie Ihren Kreuz-Kreis-Plus-Datensatz aus einem Foto von handgezeichneten Symbolen erstellen können. Die Gruppierung von Pixeln nennt sich Bildsegmentierung und ist letztlich ein \"unüberwachtes\" Lernproblem. Wird sie gut gemacht, so können in vielen Anwendungen nachgelagerte Aufgaben viel einfacher gelöst werden. \n",
+    "\n",
+    "Hier wird das Package scikit-image benutzt aber es wird ein kleiner Teil der darin enthaltenen Bildsegmentierungsverfahren vorgeführt. Nutzen Sie die  Gelegenheit, sich über das Gebiet der Bildsegmentierung und den diesbezüglichen Funktionsumfang von scikit-image zu informieren. Die hier benutzten Algorithmen (zur Schwellwertfindung und Segmentierung) sind teilweise alles andere als einfach, aber eben bereits in Standard Open-Source Software verfügbar und online gut dokumentiert.  \n",
+    "\n",
+    "**Beachten Sie:** Segmentierung ist ein anspruchsvolles Ziel und nicht nur in der Forschung weites und Gebiet. Sobald die zu segmentierenden Objekte z.B. \n",
+    "- weniger klare Konturen haben,\n",
+    "- weniger kontrastreich sind,\n",
+    "- unterschiedlich beleuchtet werden,\n",
+    "- aus unterschiedlichen Winkeln fotografiert wurden,\n",
+    "- mehr Rauschen besitzen, oder \n",
+    "- von anderen Objekten überdeckt werden,\n",
+    "wird die Aufgabe deutlich schwieriger. Diese Übung hier liefert Ihnen nur einen Einstieg.\n",
+    "\n",
+    "\n",
+    "\n",
+    "Angepasst von  \n",
+    "http://scikit-image.org/docs/dev/auto_examples/segmentation/plot_label.html  \n",
+    "Dr. B.Tödtli, Fernfachhochschule Schweiz (FFHS)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "%matplotlib inline\n",
+    "import matplotlib.pyplot as plt\n",
+    "import numpy as np\n",
+    "import skimage.data\n",
+    "\n",
+    "plt.rcParams['image.cmap'] = 'gray'\n",
+    "\n",
+    "def remove_ticks(x=True,y=True):\n",
+    "    if x: plt.gca().axes.get_xaxis().set_visible(False)\n",
+    "    if y: plt.gca().axes.get_yaxis().set_visible(False)\n",
+    "        \n",
+    "def show_images(imglist,figsize=(15,15),**kwargs):\n",
+    "    \"\"\"\n",
+    "    Erstelle aus einer Liste von Pixel-Arrays eine Visualisierung \n",
+    "    der dazugehörigen Bilder, für den praktischen visuellen Vergleich.\n",
+    "    \"\"\"\n",
+    "    nImages=len(imglist)\n",
+    "    plt.figure(figsize=figsize)\n",
+    "    for i,image in enumerate(imglist):\n",
+    "        plt.subplot(1,nImages,i+1)\n",
+    "        plt.imshow(image,**kwargs);\n",
+    "        remove_ticks()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "**Aufgabe** \n",
+    "Lesen Sie hier mit Hilfe der Funktion skimage.data.imread Ihr Bild als Graustufenbild ein"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "im=skimage.data.imread(...)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "#Die InputDatei ist einfach ein Foto einer Weissen Fläche, mit den 'x','o','p'-Symbolen\n",
+    "#nebeneinander gemalt.\n",
+    "\n",
+    "#Bei hellem Papier und dunklem Stift muss das Bild invertiert werden:\n",
+    "image=1-im\n",
+    "\n",
+    "plt.imshow(image)\n",
+    "image.shape,image.min(),image.max()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "import matplotlib.patches as mpatches\n",
+    "\n",
+    "from skimage import data\n",
+    "from skimage.filters import threshold_otsu\n",
+    "from skimage.segmentation import clear_border\n",
+    "from skimage.measure import label, regionprops\n",
+    "from skimage.morphology import closing, square\n",
+    "from skimage.color import label2rgb"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "** Aufgabe:** Bestimmen Sie hier einen Schwellwert, so dass das Bild binär wird.\n",
+    "\n",
+    "    thresh = Ihre_Schwellwertfunktion(image) \n",
+    "    #oder\n",
+    "    thresh = <eine Zahl>\n",
+    "    \n",
+    "Wenden Sie falls sinnvoll anschliessend noch ein morphologisches closing an. Macht dies bei Ihrem Datensatz einen Unterschied?\n",
+    "Speichern Sie Ihren Output in der Variablen \n",
+    "    \n",
+    "    bw  \n",
+    "Die Idee davon ist, dünne Linien zu schliessen.   "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "?closing\n",
+    "bw\n",
+    "plt.imshow(bw);"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "# remove artifacts connected to image border\n",
+    "#clear_border?\n",
+    "cleared = clear_border(bw)\n",
+    "plt.imshow(cleared);"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# label ist der Segmentierungsbefehl\n",
+    "#label?\n",
+    "label_image = label(cleared)\n",
+    "#label_image enthält integers, welche das label des Segments enthält. \n",
+    "plt.imshow(label_image);\n",
+    "#Die Zeichen scheinen von oben nach unten durchnummeriert zu werden:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "#Mache diese Labelzuordnung noch etwas deutlicher:\n",
+    "#label2rgb? \n",
+    "image_label_overlay = label2rgb(label_image, image=image,bg_label=0)\n",
+    "show_images([label_image,image_label_overlay]);\n",
+    "label_image.min(),label_image.max(),image_label_overlay.shape"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "die Segmente sind nun von (0 bis 83) durchnummeriert. Das Hintergrundsegment ist 0."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "#regionprops?\n",
+    "regionlist=regionprops(label_image,image,cache=True)\n",
+    "#Untersuchen wir eine Region:\n",
+    "testregion=regionlist[78]\n",
+    "\n",
+    "show_images([testregion.intensity_image,testregion.image],figsize=(4,4),interpolation='none')\n",
+    "testregion.area,testregion.bbox,testregion.label"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Es gibt noch viele weitere Eigenschaften dieser Segmente! Siehe \n",
+    "\n",
+    "    help(regionprops)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "fig, ax = plt.subplots(figsize=(10, 6))\n",
+    "ax.imshow(image_label_overlay)\n",
+    "bboxw=60\n",
+    "Kreuz_Kreis_Plus_images=[]\n",
+    "Kreuz_Kreis_Plus_labels=[]\n",
+    "for region in regionprops(label_image,image):\n",
+    "    # Allzu kleine Regionen lassen wir weg:\n",
+    "    if region.area <10: continue\n",
+    "    # Zeichne ein Rechteck um die Region\n",
+    "    minr, minc, maxr, maxc = region.bbox\n",
+    "    rect = mpatches.Rectangle((minc, minr), maxc - minc, maxr - minr,\n",
+    "                              fill=False,  edgecolor='red',linewidth=2)\n",
+    "    plt.text(minc, minr,region.label,color='w')\n",
+    "    ax.add_patch(rect)\n",
+    "    \n",
+    "    Kreuz_Kreis_Plus_images.append(region.intensity_image)\n",
+    "    Kreuz_Kreis_Plus_labels.append(region.label)\n",
+    "    \n",
+    "\n",
+    "ax.set_axis_off()\n",
+    "plt.tight_layout()\n",
+    "plt.show()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "**Aufgabe:** \n",
+    "Erstellen Sie nun den Zielvektor\n",
+    "\n",
+    "    oxp_labels = ['o','o','x','p','p',...]\n",
+    "    \n",
+    "nicht alle Labels werden richtig vergeben (bei mir fehlte das Label 43). Entfernen Sie solche Bilder und erstellen Sie sorgfältig ihren Labelvektor"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "#Ich sehe das Label 43 nirgends...?\n",
+    "print(regionprops(label_image,image)[42].label)\n",
+    "show_images([regionprops(label_image,image)[42].intensity_image,\n",
+    "             regionprops(label_image,image)[42].image],figsize=(5,5))\n",
+    "#Hmmm...\n",
+    "skip_image_labels=[43]   # Aufgabe: Passen Sie diese Zeile an!"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "#lese an obigem Bild das Label ab:\n",
+    "print(Kreuz_Kreis_Plus_labels)\n",
+    "#oxp_labels= ['o']*27+['x']*29+['p']*26 \n",
+    "assert len(Kreuz_Kreis_Plus_images)==len(oxp_labels),'Anzahl Labels sollten gleich sein wie die Anzahl Bilder...'\n",
+    "len(oxp_labels)==(len(regionprops(label_image,image))-1)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "indices=[0,41,42,43,44,-1]\n",
+    "print([oxp_labels[ind] for ind in indices])\n",
+    "show_images([Kreuz_Kreis_Plus_images[i] for i in indices],figsize=(10,10))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "def padRows(image,DeltaRows):\n",
+    "    \"\"\"\n",
+    "    Füge dem <image> <DeltaRows> Zeilen (mit Wert 0) hinzu (symmetrisch oben und unten)\n",
+    "    >>> padRows(np.zeros((47, 58)),3).shape\n",
+    "    (50, 58)\n",
+    "    \"\"\"\n",
+    "    #print('pad rows: ',image.shape,DeltaRows)\n",
+    "    nrows=image.shape[0]\n",
+    "    DeltaRows_top = DeltaRows//2\n",
+    "    DeltaRows_bottom = DeltaRows//2+DeltaRows%2\n",
+    "    assert DeltaRows_top+DeltaRows_bottom==DeltaRows, \\\n",
+    "       'This should add up: {0}+{1}={2}'.format(DeltaRows_top,DeltaRows_bottom,DeltaRows)\n",
+    "\n",
+    "    padRows_top = np.zeros((DeltaRows_top,image.shape[1]))\n",
+    "    padRows_bottom = np.zeros((DeltaRows_bottom,image.shape[1]))\n",
+    "    image_padded=np.vstack((padRows_top,image,padRows_bottom))\n",
+    "    image_cropped=image_padded\n",
+    "    return image_cropped\n",
+    "\n",
+    "def cropRows(image,DeltaRows):\n",
+    "    \"\"\"\n",
+    "    Schneide dem <image> <DeltaCols> Zeilen ab (symmetrisch oben und unten)\n",
+    "\n",
+    "    >>> cropRows(np.zeros((56, 58)),6).shape\n",
+    "    (50, 58)\n",
+    "    \"\"\"\n",
+    "    nrows=image.shape[0]\n",
+    "    DeltaRows = abs(DeltaRows)\n",
+    "    DeltaRows_top = DeltaRows//2\n",
+    "    DeltaRows_bottom = DeltaRows//2+DeltaRows%2\n",
+    "    assert DeltaRows_top+DeltaRows_bottom==DeltaRows, \\\n",
+    "       'This should add up: {0}+{1}={2}'.format(DeltaRows_top,DeltaRows_bottom,DeltaRows)\n",
+    "\n",
+    "    image_cropped=image[DeltaRows_top:(-DeltaRows_bottom),:]\n",
+    "    return image_cropped\n",
+    "    \n",
+    "def padCols(image,DeltaCols):\n",
+    "    \"\"\"\n",
+    "    Füge dem <image> <DeltaCols> Spalten hinzu (symmetrisch links und rechts)\n",
+    "    >>>cropCols(np.zeros((56, 58)),8).shape\n",
+    "    (56, 50)\n",
+    "    \"\"\"\n",
+    "    #Spalten hinzufügen ist das selbe wie transponieren-Zeilen hinzufügen-transponieren\n",
+    "    image_cropped=padRows(image.T,DeltaCols).T\n",
+    "    return image_cropped\n",
+    "\n",
+    "def cropCols(image,DeltaCols):\n",
+    "    \"\"\"\n",
+    "    Schneide dem <image> <DeltaCols> Spalten ab (symmetrisch links und rechts)\n",
+    "    >>>padCols(np.zeros((57, 44)),6).shape\n",
+    "    (57, 50)\n",
+    "    \"\"\"\n",
+    "    #Spalten abschneiden ist das selbe wie transponieren-Zeilen abschneiden-transponieren\n",
+    "    image_cropped=cropRows(image.T,DeltaCols).T\n",
+    "    return image_cropped\n",
+    "    \n",
+    "(cropRows(np.zeros((57, 61)),7).shape,cropRows(np.zeros((56, 58)),6).shape,\n",
+    " padCols(np.zeros((57, 44)),6).shape,cropCols(np.zeros((56, 58)),8).shape)\n",
+    "\n",
+    "def crop_it_myself(image,DeltaRows,DeltaCols):\n",
+    "    if DeltaRows>0:\n",
+    "        #add DeltaRows rows\n",
+    "        image_cropped=padRows(image,DeltaRows)\n",
+    "    elif DeltaRows<0:\n",
+    "        #remove DeltaRows rows\n",
+    "        image_cropped=cropRows(image,-DeltaRows)\n",
+    "    else: image_cropped=image\n",
+    "    assert image_cropped.shape[0]==nrows,'Bug!{0}'.format(DeltaRows)\n",
+    "    if DeltaCols>0:\n",
+    "        #add DeltaCols columns\n",
+    "        image_cropped = padCols(image_cropped,DeltaCols)\n",
+    "    elif DeltaCols<0:\n",
+    "        #add DeltaCols columns\n",
+    "        image_cropped = cropCols(image_cropped,DeltaCols)\n",
+    "    assert image_cropped.shape[1]==ncols,'Bug!'        \n",
+    "    return image_cropped"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "image.shape"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "image_cropped=skimage.transform.resize(image,(nrows,ncols),mode='constant')\n",
+    "image_cropped.shape"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "nrows=50\n",
+    "ncols=50\n",
+    "croppedImages=[]\n",
+    "#OUTPUTMODE='resize'\n",
+    "#OUTPUTMODE='crop'\n",
+    "\n",
+    "for image in Kreuz_Kreis_Plus_images:\n",
+    "    DeltaRows,DeltaCols = 50-image.shape[0],50-image.shape[1]\n",
+    "    if OUTPUTMODE=='resize':\n",
+    "        image_cropped=skimage.transform.resize(image,(nrows,ncols),mode='constant')\n",
+    "    else:\n",
+    "        image_cropped=crop_it_myself(image,DeltaRows,DeltaCols)\n",
+    "    croppedImages.append(image_cropped)\n",
+    "\n",
+    "plt.imshow(croppedImages[43],interpolation='none')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Ich finde das Abschneiden weniger hübsch! Allerdings ist mir nicht klar, wie das Bild mit der Funktion \"resize()\" reskaliert wird. Wie werden Pixelwerte interpoliert? Ich hoffe mal, dass dies keine weitere Rolle spielt. Je nach Anwendung kann sich hier aber eine Einbusse ergeben!"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "for image in croppedImages:\n",
+    "    assert image.shape==(nrows,ncols),\\\n",
+    "    'Spalten und Zeilen sollten nun {0}x{0} sein, sind es aber nicht'.format(\n",
+    "    nrows,ncols)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "show_images([croppedImages[43],croppedImages[43]>0.5],interpolation='none')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "**Aufgabe:**\n",
+    "- Schreiben Sie Ihre Bilder im vorgesehenen Format auf ihre Festplatte.\n",
+    "- Erstellen Sie eine CSV-Datei mit Ziel- und Featurevektor im vorgesehenen Format. \n",
+    "- Laden Sie beides auf Moodle hoch\n",
+    "\n",
+    "Vielleicht helfen Ihnen die folgenden Zellen?"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "output_dir=\n",
+    "initialen=\n",
+    "ZUFALLSZEICHENKETTE=\n",
+    "import os.path\n",
+    "\n",
+    "label_dict={}\n",
+    "for iimg,(classLabelChar, image) in enumerate(zip(oxp_labels,croppedImages)):\n",
+    "    basename = '{0}-{1:02}-{2}-{3}.png'.format(classLabelChar,iimg,initialen,ZUFALLSZEICHENKETTE)\n",
+    "    \n",
+    "    <Speichern Sie hier ihr 50x50-Graustufenbild ab>"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "#Hilfsfunktion für den Export in eine CSV-Datei\n",
+    "import numpy as np\n",
+    "def to_binary_csv(X,y,csvfilename,threshold,verbose=False):\n",
+    "    \"\"\"\n",
+    "    Wende den Schwellwert threshold auf das Grauwertbild X an\n",
+    "    und schreibe alles in eine csv-Datei. \n",
+    "    Beispiel:\n",
+    "    >>>X=np.array([[0.1,0.9],[0.9,0.0],[0.0,0.0]])\n",
+    "    >>>y=np.array(['x','p','o'])\n",
+    "    >>>to_binary_csv(X,y,'/tmp/testcsv.csv',0.5)\n",
+    "    wrote CSV file to /tmp/testcsv.csv\n",
+    "    \n",
+    "    Die csv-Datei enthält dann\n",
+    "    x,1,0\n",
+    "    p,0,1\n",
+    "    o,1,1\n",
+    "    \"\"\"\n",
+    "    with open(csvfilename,'w') as fh:\n",
+    "        for iimg,(image,label) in enumerate(zip(X,y)):\n",
+    "            classLabelChar=y[iimg]\n",
+    "            binaryimage=np.where(image>threshold,0,1)\n",
+    "            line=','.join([classLabelChar]+[str(num) for num in binaryimage.ravel()])+'\\n'\n",
+    "            fh.write(line)\n",
+    "    print('wrote CSV file to {0}'.format(csvfilename))"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.5.2"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2
+}
